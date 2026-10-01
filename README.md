@@ -2,7 +2,7 @@
 
 **Author:** Tafarel Hutama Putra  
 **Tech Stack:** n8n, Google Gemini 1.5 Pro (Multimodal), Google Sheets API, Telegram API, Gmail API, HTML/CSS.
-
+**LINK n8n PROJECT:** https://shanatio.app.n8n.cloud/workflow/5laZbc7vBDBx3rBo
 ---
 
 ## 📖 Latar Belakang (Background)
