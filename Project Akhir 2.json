@@ -1,0 +1,447 @@
+{
+  "name": "Project Akhir 2",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3809f973-581c-45fc-817d-29301af18118",
+      "name": "Telegram Trigger",
+      "webhookId": "223eba16-b41c-420f-94c2-ad5ce9509722",
+      "credentials": {
+        "telegramApi": {
+          "id": "czWu9pm4YWaNaXz5",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger').item.json.message.audio.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        656,
+        0
+      ],
+      "id": "5f19874e-8416-4a16-ad76-9c7e43d996cb",
+      "name": "Get a file",
+      "webhookId": "8f4f1009-3d8a-4e3d-9585-f3a2b7599bae",
+      "credentials": {
+        "telegramApi": {
+          "id": "czWu9pm4YWaNaXz5",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "19WzVOSXud_jeqP7XStqS4RHC7oYAZEFepURPZbOdzT4",
+          "mode": "list",
+          "cachedResultName": "project_2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19WzVOSXud_jeqP7XStqS4RHC7oYAZEFepURPZbOdzT4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19WzVOSXud_jeqP7XStqS4RHC7oYAZEFepURPZbOdzT4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "83c913d7-af31-41b1-b23e-328b150925f8",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "w2ISvybaxAcUS5HG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "7bef043a-b1a0-4650-9d19-eb3c22949e97",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3-flash-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3-flash-preview"
+        },
+        "text": "=Kamu adalah Senior Data Analyst & Executive Assistant berbasis AI. Tugasmu adalah membaca dua input:\n\nTranskrip rekaman rapat mingguan.\n\nData KPI operasional dari Google Sheets (4 minggu terakhir).\n\nBuatlah laporan evaluasi terpisah untuk masing-masing divisi yang DIBIKINKAN TINDAK LANJUTNYA ATAU DIBAHAS dalam rapat.\nDivisi yang disimulasikan:\n\nLogistics & Fulfillment Operations\n\nData Analytics\n\nIT & Infrastructure\n\nATURAN KRITIS (EDGE CASES & KETENTUAN):\n\nBERBASIS DATA (GROUNDED): Jika ucapan manusia di rapat BERTOLAK BELAKANG dengan data KPI yang dilampirkan, kamu WAJIB menegur anomali tersebut secara objektif di dalam laporan menggunakan bagian \"Data vs Statement Discrepancy Alert\". JANGAN PERNAH mengubah data agar cocok dengan ucapan. Gunakan bahasa profesional, bukan konfrontatif.\n\nFILTER DIVISI: Jika ada divisi yang tidak dibahas, atau dibahas tapi sama sekali tidak ada kaitan dengan data/tindak lanjut operasional, ABABIKAN divisi tersebut (jangan buat laporannya).\n\nFORECASTING (OPSI A): Lakukan ekstrapolasi kualitatif. Berdasarkan tren angka pada data + konteks ucapan di rapat, berikan prediksi skenario 2-4 minggu ke depan beserta risikonya.\n\nFORMAT OUTPUT: Output harus dalam format JSON yang valid agar mudah di-parse oleh n8n (jangan gunakan markdown biasa di luar JSON).\n\nStruktur Laporan untuk setiap divisi WAJIB memiliki elemen ini:\n\n\"executive_summary\": Arahan manajemen khusus divisi ini.\n\n\"performance_spikes\": Angka metrik minggu ini vs histori + anomali lonjakan/penurunan.\n\n\"diagnostic_analysis\": Mengapa anomali terjadi berdasarkan sinkronisasi suara rapat + data.\n\n\"forecasting_risk\": Proyeksi kualitatif 2–4 minggu ke depan jika rencana rapat dieksekusi.\n\n\"action_items\": Daftar tugas konkret, PIC, dan tenggat waktu (dalam bentuk array objek).\n\n\"discrepancy_alert\": (Opsional) Hanya diisi jika ada perbedaan antara klaim ucapan dengan fakta data. Jika tidak ada, isi dengan null.\n\nFORMAT OUTPUT JSON YANG DIHARAPKAN:\n{\n\"reports\": [\n{\n\"division_name\": \"Nama Divisi\",\n\"email_to\": \"kepaladivisi@perusahaan.com\",\n\"content\": {\n\"executive_summary\": \"...\",\n\"performance_spikes\": \"...\",\n\"diagnostic_analysis\": \"...\",\n\"forecasting_risk\": \"...\",\n\"discrepancy_alert\": \"...\",\n\"action_items\": [\n{ \"task\": \"...\", \"pic\": \"...\", \"deadline\": \"...\" }\n]\n}\n}\n]\n}\n=== DATA KPI OPERASIONAL ===\n{{ JSON.stringify($('Aggregate').item.json.data, null, 2) }}",
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        896,
+        0
+      ],
+      "id": "4d1fc0df-36bd-4354-9775-3c0d72055db4",
+      "name": "Analyze document",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ErjdVjV07EAeSoyA",
+          "name": "API bumiazzam"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8d5d02cf-1cae-43d5-9d0c-44dbfadcb8ed",
+              "name": "divisi",
+              "value": "={{ JSON.parse($json.content.parts[0].text).reports }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1104,
+        0
+      ],
+      "id": "cd469b13-22b8-4e12-93e0-e652d8f5d63f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "divisi",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        0
+      ],
+      "id": "9a79bd85-fda3-44ca-b0db-ded133bb8613",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.divisi.division_name }}",
+                    "rightValue": "Logistics & Fulfillment Operations",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "158219de-294e-4782-b732-75fcc9ef9fa3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "logistik"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "dd9d44b0-dda1-4589-a574-b9c0c31f4442",
+                    "leftValue": "={{ $json.divisi.division_name }}",
+                    "rightValue": "Data Analytics",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "data"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "720105e0-7009-4919-b487-0b3b0bafbad8",
+                    "leftValue": "={{ $json.divisi.division_name }}",
+                    "rightValue": "IT & Infrastructure",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "it"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1552,
+        0
+      ],
+      "id": "5e16a119-a72b-4535-943d-dca03847dba7",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "sendTo": "bumiazzam62@gmail.com",
+        "subject": "Summary Rapat - Logistics & Fulfillment Operations",
+        "message": "=<div style=\"font-family: Arial, sans-serif; color: #333; max-width: 650px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;\">\n  <div style=\"background-color: #0f172a; color: #fff; padding: 20px; text-align: center;\">\n    <h2 style=\"margin: 0;\">Automated Evaluation Report</h2>\n    <p style=\"margin: 5px 0 0; font-size: 16px;\">Divisi: <strong style=\"color: #38bdf8;\">{{ $json.divisi.division_name }}</strong></p>\n  </div>\n\n  <div style=\"padding: 25px;\">\n    <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">📊 Executive Summary</h3>\n    <p style=\"line-height: 1.6;\">{{ $json.divisi.content.executive_summary }}</p>\n\n    <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">📈 Performance & Spikes</h3>\n    <p style=\"line-height: 1.6;\">{{ $json.divisi.content.performance_spikes }}</p>\n\n    <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">🔍 Diagnostic Analysis</h3>\n    <p style=\"line-height: 1.6;\">{{ $json.divisi.content.diagnostic_analysis }}</p>\n\n    <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">🔮 Forecasting & Risk Outlook</h3>\n    <p style=\"line-height: 1.6;\">{{ $json.divisi.content.forecasting_risk }}</p>\n\n    <!-- KOTAK ALERT OTOMATIS: Hanya akan muncul jika AI menemukan Discrepancy -->\n    {{ $json.divisi.content.discrepancy_alert ? `<div style=\"background-color: #fef2f2; border-left: 5px solid #ef4444; padding: 15px; margin: 25px 0; border-radius: 0 4px 4px 0;\">\n      <h4 style=\"color: #991b1b; margin: 0 0 8px 0;\">⚠️ Data vs Statement Discrepancy Alert</h4>\n      <p style=\"margin: 0; color: #7f1d1d;\">${$json.divisi.content.discrepancy_alert}</p>\n    </div>` : '' }}\n\n    <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">✅ Action Items</h3>\n    <table style=\"width: 100%; border-collapse: collapse; margin-top: 15px;\">\n      <thead>\n        <tr style=\"background-color: #f8fafc; text-align: left;\">\n          <th style=\"padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 14px;\">Task</th>\n          <th style=\"padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 14px;\">PIC</th>\n          <th style=\"padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 14px;\">Deadline</th>\n        </tr>\n      </thead>\n      <tbody>\n        <!-- LOOPING TABEL OTOMATIS -->\n        {{ $json.divisi.content.action_items.map(item => `\n        <tr>\n          <td style=\"padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; line-height: 1.5;\">${item.task}</td>\n          <td style=\"padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px;\"><strong>${item.pic}</strong></td>\n          <td style=\"padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #dc2626;\">${item.deadline}</td>\n        </tr>\n        `).join('') }}\n      </tbody>\n    </table>\n  </div>\n  \n  <div style=\"background-color: #f1f5f9; text-align: center; padding: 15px; font-size: 12px; color: #64748b;\">\n    Email ini di-generate secara otomatis oleh AI berdasarkan transkrip rapat dan data analitik KPI operasional.\n  </div>\n</div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1776,
+        -160
+      ],
+      "id": "f7ffdc51-490a-4e69-936d-b09cce6856eb",
+      "name": "Send a message",
+      "webhookId": "bc2e81aa-6f31-460c-9d92-b488b3a36ce5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YulnrAxD5x7wyr8L",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "bumiazzam62@gmail.com",
+        "subject": "Summary Rapat - Data Analytics",
+        "message": "=<div style=\"font-family: Arial, sans-serif; color: #333; max-width: 650px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;\">   <div style=\"background-color: #0f172a; color: #fff; padding: 20px; text-align: center;\">     <h2 style=\"margin: 0;\">Automated Evaluation Report</h2>     <p style=\"margin: 5px 0 0; font-size: 16px;\">Divisi: <strong style=\"color: #38bdf8;\">{{ $json.divisi.division_name }}</strong></p>   </div>    <div style=\"padding: 25px;\">     <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">📊 Executive Summary</h3>     <p style=\"line-height: 1.6;\">{{ $json.divisi.content.executive_summary }}</p>      <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">📈 Performance & Spikes</h3>     <p style=\"line-height: 1.6;\">{{ $json.divisi.content.performance_spikes }}</p>      <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">🔍 Diagnostic Analysis</h3>     <p style=\"line-height: 1.6;\">{{ $json.divisi.content.diagnostic_analysis }}</p>      <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">🔮 Forecasting & Risk Outlook</h3>     <p style=\"line-height: 1.6;\">{{ $json.divisi.content.forecasting_risk }}</p>      <!-- KOTAK ALERT OTOMATIS: Hanya akan muncul jika AI menemukan Discrepancy -->     {{ $json.divisi.content.discrepancy_alert ? `<div style=\"background-color: #fef2f2; border-left: 5px solid #ef4444; padding: 15px; margin: 25px 0; border-radius: 0 4px 4px 0;\">       <h4 style=\"color: #991b1b; margin: 0 0 8px 0;\">⚠️ Data vs Statement Discrepancy Alert</h4>       <p style=\"margin: 0; color: #7f1d1d;\">${$json.divisi.content.discrepancy_alert}</p>     </div>` : '' }}      <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">✅ Action Items</h3>     <table style=\"width: 100%; border-collapse: collapse; margin-top: 15px;\">       <thead>         <tr style=\"background-color: #f8fafc; text-align: left;\">           <th style=\"padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 14px;\">Task</th>           <th style=\"padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 14px;\">PIC</th>           <th style=\"padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 14px;\">Deadline</th>         </tr>       </thead>       <tbody>         <!-- LOOPING TABEL OTOMATIS -->         {{ $json.divisi.content.action_items.map(item => `         <tr>           <td style=\"padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; line-height: 1.5;\">${item.task}</td>           <td style=\"padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px;\"><strong>${item.pic}</strong></td>           <td style=\"padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #dc2626;\">${item.deadline}</td>         </tr>         `).join('') }}       </tbody>     </table>   </div>      <div style=\"background-color: #f1f5f9; text-align: center; padding: 15px; font-size: 12px; color: #64748b;\">     Email ini di-generate secara otomatis oleh AI berdasarkan transkrip rapat dan data analitik KPI operasional.   </div> </div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1776,
+        0
+      ],
+      "id": "ad545c50-e482-447e-af57-9a8cb60ce196",
+      "name": "Send a message1",
+      "webhookId": "b944339d-6d83-491a-a297-887370171622",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YulnrAxD5x7wyr8L",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "bumiazzam62@gmail.com",
+        "subject": "Summary Rapat - IT & Infrastructure",
+        "message": "=<div style=\"font-family: Arial, sans-serif; color: #333; max-width: 650px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;\">   <div style=\"background-color: #0f172a; color: #fff; padding: 20px; text-align: center;\">     <h2 style=\"margin: 0;\">Automated Evaluation Report</h2>     <p style=\"margin: 5px 0 0; font-size: 16px;\">Divisi: <strong style=\"color: #38bdf8;\">{{ $json.divisi.division_name }}</strong></p>   </div>    <div style=\"padding: 25px;\">     <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">📊 Executive Summary</h3>     <p style=\"line-height: 1.6;\">{{ $json.divisi.content.executive_summary }}</p>      <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">📈 Performance & Spikes</h3>     <p style=\"line-height: 1.6;\">{{ $json.divisi.content.performance_spikes }}</p>      <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">🔍 Diagnostic Analysis</h3>     <p style=\"line-height: 1.6;\">{{ $json.divisi.content.diagnostic_analysis }}</p>      <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">🔮 Forecasting & Risk Outlook</h3>     <p style=\"line-height: 1.6;\">{{ $json.divisi.content.forecasting_risk }}</p>      <!-- KOTAK ALERT OTOMATIS: Hanya akan muncul jika AI menemukan Discrepancy -->     {{ $json.divisi.content.discrepancy_alert ? `<div style=\"background-color: #fef2f2; border-left: 5px solid #ef4444; padding: 15px; margin: 25px 0; border-radius: 0 4px 4px 0;\">       <h4 style=\"color: #991b1b; margin: 0 0 8px 0;\">⚠️ Data vs Statement Discrepancy Alert</h4>       <p style=\"margin: 0; color: #7f1d1d;\">${$json.divisi.content.discrepancy_alert}</p>     </div>` : '' }}      <h3 style=\"color: #0f172a; border-bottom: 2px solid #eee; padding-bottom: 8px;\">✅ Action Items</h3>     <table style=\"width: 100%; border-collapse: collapse; margin-top: 15px;\">       <thead>         <tr style=\"background-color: #f8fafc; text-align: left;\">           <th style=\"padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 14px;\">Task</th>           <th style=\"padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 14px;\">PIC</th>           <th style=\"padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 14px;\">Deadline</th>         </tr>       </thead>       <tbody>         <!-- LOOPING TABEL OTOMATIS -->         {{ $json.divisi.content.action_items.map(item => `         <tr>           <td style=\"padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; line-height: 1.5;\">${item.task}</td>           <td style=\"padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px;\"><strong>${item.pic}</strong></td>           <td style=\"padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #dc2626;\">${item.deadline}</td>         </tr>         `).join('') }}       </tbody>     </table>   </div>      <div style=\"background-color: #f1f5f9; text-align: center; padding: 15px; font-size: 12px; color: #64748b;\">     Email ini di-generate secara otomatis oleh AI berdasarkan transkrip rapat dan data analitik KPI operasional.   </div> </div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1776,
+        208
+      ],
+      "id": "4b8a8404-6d3e-4765-b461-1e7041711e0d",
+      "name": "Send a message2",
+      "webhookId": "3574539b-9c04-4de2-9c82-9dccbf54f277",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YulnrAxD5x7wyr8L",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Analyze document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze document": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "351ba281-e24a-4332-985c-39827f1eb6f3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "970696ac7b9520088c57bb7f5fdf3299ce3218b41159c74c3b3c35a2e46efce6"
+  },
+  "nodeGroups": [],
+  "id": "5laZbc7vBDBx3rBo",
+  "tags": []
+}
